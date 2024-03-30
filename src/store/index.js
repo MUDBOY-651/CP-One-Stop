@@ -4,22 +4,25 @@ const store = createStore({
   state() {
     return {
       isAuthenticated: false,
-      user: null, // 用户信息
+      username: null,
+      user_id: null,
     };
   },
   mutations: {
-    login(state, user) {
+    login(state, { username, user_id }) {
       state.isAuthenticated = true;
-      state.user = user;
+      state.username = username;
+      state.user_id = user_id;
     },
     logout(state) {
       state.isAuthenticated = false;
-      state.user = null;
+      state.username = null;
+      state.user_id = null;
     },
   },
   actions: {
-    login({ commit }, user) {
-      commit('login', user);
+    login({ commit }, {username, user_id}) {
+      commit('login', {username, user_id});
     },
     logout({ commit }) {
       commit('logout');

@@ -10,7 +10,7 @@ const routes = [
   { path: '/', name: 'Home', component: HomeView, meta: { requiresAuth: true } },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', component: Register },
-  { path: '/user', component: UserProfileView },
+  { path: '/user/:userId', component: UserProfileView },
   { path: '/chat', component: Chatbox },
   // 可以添加更多的路由规则
 ];

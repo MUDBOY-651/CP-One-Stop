@@ -10,6 +10,7 @@
         <label for="password">Password:</label>
         <input id="password" v-model="password" type="password" required class="form-control">
       </div>
+      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
       <button type="submit" class="btn-login">Login</button>
     </form>
   </div>
@@ -17,19 +18,47 @@
 
 
 <script>
+import axios from 'axios'
+
 export default {
   data() {
     return {
       username: '',
       password: '',
+      errorMessage: '',
     };
   },
   methods: {
     async login() {
-      // 这里应该包括登录逻辑，比如调用API验证用户
-      // 假设登录成功，我们直接使用Vuex进行状态管理和导航
-      this.$store.dispatch('login', { username: this.username });
-      this.$router.push('/'); // 导航到主页
+      const loginData = {
+        username: this.username,
+        password: this.password,
+      };
+
+      try {
+        const response = await axios.post('/api/login', loginData);
+        if (response && response.data && response.data.success) {
+          console.log('Login successful:', response.data.content);
+          // 处理登录成功的逻辑，例如保存 token、更新用户状态等
+          this.$store.dispatch('login', { username: this.username, user_id: response.data.content.user_id });
+          this.$router.push('/');
+
+          // 触发后端爬虫更新用户数据 
+          axios.post(`/py_api/crawler/platform-stats?user_id=${response.data.content.user_id}`)
+            .then(response => {
+              console.log("crawler success")
+            })
+            .catch(error => {
+              console.error('crawler error:', error);
+            });
+        } else {
+          console.error('Login failed:', response.data.message);
+          this.errorMessage = response.data.message || 'Login failed. Please check your username and password.';
+        }
+      } catch (error) {
+        console.error('Login error:', error.response || error.message);
+        this.errorMessage = error.response.data.message || 'Network error. Please try again later.';
+      }
     },
     navigateToRegister() {
       this.$router.push('/register'); // 导航到注册页面
@@ -84,5 +113,11 @@ export default {
 
 .btn-login:hover {
   background-color: #0056b3;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 </style>

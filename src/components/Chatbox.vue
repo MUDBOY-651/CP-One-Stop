@@ -4,10 +4,14 @@
       <!-- 使用v-for循环遍历messages数组 -->
       <div v-for="(message, index) in messages" :key="index"
         :class="['message', { 'user-message': message.user, 'ai-message': !message.user }]">
-        <!-- 包装消息内容以应用样式 -->
-        <div class="message-content">
-          {{ message.text }}
-        </div>
+        <!-- 对于用户消息，直接显示文本 -->
+        <template v-if="message.user">
+          <div class="message-content">{{ message.text }}</div>
+        </template>
+        <!-- 对于AI消息，应用Markdown渲染 -->
+        <template v-else>
+          <div class="message-content" v-html="renderMarkdown(message.text)"></div>
+        </template>
       </div>
     </div>
     <form @submit.prevent="sendMessage" class="form-container">
@@ -20,43 +24,85 @@
 
 
 <script>
+import axios from 'axios'; // 引入axios
+import { Marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
+import hljs from 'highlight.js';
+
+const marked = new Marked (
+  markedHighlight({
+    langPrefix: 'hljs language-',
+    highlight(code, lang, info) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    }
+  })
+);
+
+
 export default {
   data() {
     return {
       userInput: '',
       messages: [],
+      // gpt_messages: [{ role: "system", content: "现在你是文心一言模型, You are a helpful assistant who only answer questions about competitve programming, which is called 程序设计竞赛 in chinese." }],
+      gpt_messages: []
     };
   },
   methods: {
-    sendMessage() {
+    async sendMessage() {
       if (!this.userInput.trim()) return;
+
+      // 将用户输入添加到messages
       this.messages.push({ text: this.userInput, user: true });
-      this.userInput = ''; // Clear input after sending
+      this.gpt_messages.push({ role: "user", content: this.userInput })
+
+      this.userInput = ''; // 清空输入框
+      // 准备发送到后端的数据
+      const payload = {
+        messages: this.gpt_messages,
+      };
+
+      try {
+        // 发送POST请求到后端
+        const response = await axios.post('/py_api/chat', payload);
+
+
+        console.log(response.data)
+
+        if (response.data) {
+          this.gpt_messages.push({ role: "assistant", content: response.data })
+          this.messages.push({ text: response.data, user: false })
+        }
+        // 假设后端返回一个新的messages数组，包括用户的输入和AI的回复
+        // if (response.data && response.data.messages) {
+        //   this.gpt_messages.push({role: "assistant", content: response.data.messages[response.data.messages.length - 1].content})
+        //   this.messages.push({ text: response.data.messages[response.data.messages.length - 1].content, user: false })
+        // }
+      } catch (error) {
+        console.error('Error sending message:', error);
+        // 处理错误情况（例如：显示错误消息）
+      }
+
       this.$nextTick(() => {
         this.autoResize();
         const { messagesContainer } = this.$refs;
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; // 滚动到底部
       });
-
-      // Simulate an AI response
-      setTimeout(() => {
-        this.messages.push({ text: "This is a simulated response.", user: false });
-        this.$nextTick(() => {
-          const { messagesContainer } = this.$refs;
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        });
-      }, 1000); // Simulate response delay
     },
     autoResize() {
+      // 自动调整输入框大小的逻辑保持不变
       const textarea = this.$refs.messageInput;
-      // 重置高度，以便能够准确测量
       textarea.style.height = 'auto';
-      // 设置高度为scrollHeight以适应内容，加上边框的高度（如果有的话）
       textarea.style.height = textarea.scrollHeight + 'px';
+    },
+    renderMarkdown(text) {
+      return marked.parse(text);
     },
   },
 };
 </script>
+
 
 <style scoped>
 .chatbox {
@@ -89,11 +135,12 @@ export default {
 
 .message-content {
   padding: 10px;
-  border-radius: 20px;
+  border-radius: 10px;
   color: white;
   max-width: 80%;
   word-wrap: break-word;
   white-space: pre-wrap;
+  font-size: 14px;
 }
 
 .user-message .message-content {

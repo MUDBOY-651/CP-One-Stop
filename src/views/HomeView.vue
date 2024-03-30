@@ -16,7 +16,7 @@
       </p>
       <p>
         3. CP One-Stop 也能集成对程序设计竞赛常用的在线比赛平台的数据统计，用户可以在平台上同时查看 Codeforces、Atcoder、洛谷等相关的数据如 rating、题目通过数等，方便观察用户自己的学习情况。
-        <router-link to="/user" class="navbar-link">点击进入个人主页查看！</router-link>
+        <router-link to="/user/2" class="navbar-link">点击进入个人主页查看！</router-link>
       </p>
     <h2>期望的非核心的额外 feature</h2>
       <p>1. 平台内置发帖功能，方便用户交流</p>

@@ -14,6 +14,7 @@
         <label for="email">Email:</label>
         <input id="email" v-model="email" type="email" required class="form-control">
       </div>
+      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
       <button type="submit" class="btn-register">Register</button>
     </form>
   </div>
@@ -21,12 +22,15 @@
 
 
 <script>
+import axios from 'axios'
+
 export default {
   data() {
     return {
       username: '',
       password: '',
       email: '',
+      errorMessage: '',
     };
   },
   methods: {
@@ -38,18 +42,27 @@ export default {
         email: this.email,
       };
 
-      console.log("Registering user:", userData);
+      try {
+        const response = await axios.post('/api/register', userData);
+        if (response && response.data && response.data.success) {
 
-      // TODO: 在这里发送userData到后端API
-      // 示例: axios.post('/api/register', userData)
+          console.log('Register successful:', response.data.content);
+          // 处理注册成功的逻辑，例如保存 token、更新用户状态等
+          this.$store.dispatch('login', { username: this.username, user_id: response.data.content.user_id });
+          this.$router.push('/');
+        } else {
+          console.error('Register failed:', response.data.message);
+          this.errorMessage = response.data.message || 'Registration failed for an unknown reason.';
+        }
+      } catch (error) {
+        console.log('Register error:', error.response || error.message);
+        if (error.response && error.response.data) {
+          this.errorMessage = error.response.data.message;
+        } else {
+          this.errorMessage = 'Network error or server is unreachable.';
+        }
+      }
 
-      // 假设注册成功，导航到登录页面或其他操作
-      this.$router.push('/login');
-      
-      // 清空表单
-      this.username = '';
-      this.password = '';
-      this.email = '';
     },
   },
 };
@@ -101,5 +114,11 @@ export default {
 
 .btn-register:hover {
   background-color: #0056b3;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 </style>

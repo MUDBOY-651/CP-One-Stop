@@ -3,12 +3,12 @@
     <h1 class="navbar-brand">CP One-Stop</h1>
     <div class="navbar-links">
       <!-- 导航链接 -->
-      <router-link to="/" class="navbar-link">Home</router-link>
+      <router-link to="/" class="navbar-link">主页</router-link>
       <router-link v-if="isLoggedIn" to="/chat" class="navbar-link">Chat</router-link>
-      <router-link v-if="isLoggedIn" to="/user" class="navbar-link">User Profile</router-link>
-      <router-link v-if="!isLoggedIn" to="/register" class="navbar-link">Register</router-link>
-      <button v-if="isLoggedIn" @click="logout" class="navbar-button">Logout</button>
-      <button v-else @click="goToLogin" class="navbar-button">Login</button>
+      <router-link v-if="isLoggedIn" :to="'/user/' + $store.state.user_id" class="navbar-link">个人主页</router-link>
+      <router-link v-if="!isLoggedIn" to="/register" class="navbar-link">注册</router-link>
+      <button v-if="isLoggedIn" @click="logout" class="navbar-button">退出登录</button>
+      <button v-else @click="goToLogin" class="navbar-button">登录</button>
     </div>
   </nav>
 </template>
@@ -30,7 +30,7 @@ export default {
   computed: {
     isLoggedIn() {
       // 判断用户是否登录的逻辑
-      return this.$store.state.user !== null;
+      return this.$store.state.username !== null && this.$store.state.user_id !== null;
     },
   },
 };
@@ -42,7 +42,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  background-color: #060ae7;
+  background-color: #4A5D4B;
   color: white;
 }
 
@@ -55,7 +55,8 @@ export default {
   align-items: center;
 }
 
-.navbar-link, .navbar-button {
+.navbar-link,
+.navbar-button {
   margin-left: 1rem;
   text-decoration: none;
   color: white;
@@ -65,7 +66,8 @@ export default {
   font-size: 1rem;
 }
 
-.navbar-link:hover, .navbar-button:hover {
+.navbar-link:hover,
+.navbar-button:hover {
   text-decoration: underline;
 }
 

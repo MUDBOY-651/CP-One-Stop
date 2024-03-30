@@ -1,4 +1,6 @@
 import { createApp } from 'vue';
+import "../public/css/reset.css";
+// import 'normalize.css';
 import App from './App.vue'; // 引入App组件
 import router from './router'; // 引入路由配置
 import store from './store'; // 引入Vuex store
