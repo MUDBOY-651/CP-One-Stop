@@ -4,6 +4,9 @@ import UserProfileView from '../views/UserProfileView.vue';
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import Chatbox from '../components/Chatbox.vue'
+import PostView from "../views/PostView.vue"
+import MyPostView from "../views/MyPostView.vue"
+import EditPost from "../components/EditPost.vue"
 import store from '../store'
 
 const routes = [
@@ -12,6 +15,9 @@ const routes = [
   { path: '/register', component: Register },
   { path: '/user/:userId', component: UserProfileView },
   { path: '/chat', component: Chatbox },
+  { path: '/mypost', component: MyPostView },
+  { path: '/post/:postId', component: PostView },
+  { path: '/edit/post', component: EditPost },
   // 可以添加更多的路由规则
 ];
 

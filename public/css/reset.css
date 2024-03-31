@@ -22,12 +22,28 @@ select {
   padding: 0
 } */
 
-ol,
-p {
+body {
   margin: 0;
-  /* padding: 0; */
 }
 
-code, pre {
+ol,
+ul,
+p {
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+
+code,
+pre {
   font-family: monospace, monospace;
 }

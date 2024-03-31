@@ -1,0 +1,116 @@
+<template>
+  <div class="blog-home">
+    <header class="header">
+      <!-- 标题和搜索等可以放这里 -->
+      <h1>文章主页</h1>
+      <button @click="createPost">发布文章</button>
+    </header>
+    <section class="content">
+      <div v-if="loading">加载中...</div>
+      <article v-else v-for="post in posts" :key="post.post_id" class="post">
+        <h2 style="margin-bottom: 5px; margin-top: 5px;">{{ post.title }}</h2>
+
+        <p style="margin-top: 5px; margin-bottom: 5px">{{ post.excerpt }}</p>
+
+        <div class="post-meta">
+          <span style="color:grey">发布于 {{ formatTimestamp(post.created_at) }}</span>
+          <button @click="readMore(post.post_id)">阅读更多</button>
+        </div>
+
+      </article>
+    </section>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      posts: [],
+      loading: true,
+    };
+  },
+  methods: {
+    formatTimestamp(timestamp) {
+      let now = new Date(timestamp * 1000);
+      let y = now.getFullYear();
+      let m = now.getMonth() + 1;
+      let d = now.getDate();
+      return y + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d) + " " + now.toTimeString().substr(0, 8);
+    },
+    createPost() {
+      // 跳转到文章发布页面
+      this.$router.push({ path: '/edit/post' });
+    },
+    readMore(postId) {
+      // 跳转到文章详情页面
+      this.$router.push({ path: `/post/${postId}` });
+    },
+    fetchPosts() {
+      axios.post(`/py_api/get/my-post?user_id=${this.$store.state.user_id}`)
+        .then(response => {
+          console.log("get my post resp: ", response)
+          this.posts = response.data.posts;
+          console.log("this posts:", this.posts)
+          this.loading = false
+        })
+        .catch(error => {
+          console.error('Error fetching user home info:', error);
+          this.loading = false
+        });
+    }
+  },
+  mounted() {
+    this.fetchPosts();
+  },
+};
+</script>
+
+<style scoped>
+.blog-home {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.content {
+  margin-top: 20px;
+}
+
+.post {
+  border-bottom: 1px solid #ccc;
+  padding: 10px 0;
+}
+
+.post:last-child {
+  border-bottom: none;
+}
+
+.post-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8em;
+}
+
+button {
+  background-color: #f76262;
+  border: none;
+  padding: 5px 15px;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+</style>

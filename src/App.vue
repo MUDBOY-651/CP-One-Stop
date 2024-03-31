@@ -22,9 +22,8 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 /* 全局样式 */
-body,
 #app {
   margin: 0;
   padding: 0;

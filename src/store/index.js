@@ -4,6 +4,7 @@ const store = createStore({
   state() {
     return {
       isAuthenticated: false,
+      // isAuthenticated: true,
       username: null,
       user_id: null,
     };

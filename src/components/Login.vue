@@ -44,13 +44,13 @@ export default {
           this.$router.push('/');
 
           // 触发后端爬虫更新用户数据 
-          axios.post(`/py_api/crawler/platform-stats?user_id=${response.data.content.user_id}`)
-            .then(response => {
-              console.log("crawler success")
-            })
-            .catch(error => {
-              console.error('crawler error:', error);
-            });
+          // axios.post(`/py_api/crawler/platform-stats?user_id=${response.data.content.user_id}`)
+          //   .then(response => {
+          //     console.log("crawler success")
+          //   })
+          //   .catch(error => {
+          //     console.error('crawler error:', error);
+          //   });
         } else {
           console.error('Login failed:', response.data.message);
           this.errorMessage = response.data.message || 'Login failed. Please check your username and password.';
