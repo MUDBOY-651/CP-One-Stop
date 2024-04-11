@@ -3,7 +3,7 @@
     <header class="header">
       <!-- 标题和搜索等可以放这里 -->
       <h1>文章主页</h1>
-      <button @click="createPost">发布文章</button>
+      <button @click="createPost" style="background-color: #409eff;">发布文章</button>
     </header>
     <section class="content">
       <div v-if="loading">加载中...</div>
@@ -14,11 +14,22 @@
 
         <div class="post-meta">
           <span style="color:grey">发布于 {{ formatTimestamp(post.created_at) }}</span>
-          <button @click="readMore(post.post_id)">阅读更多</button>
+          <span>
+            <button @click="deletePost(post.post_id)" class="delete-button">删除</button> <!-- 添加编辑按钮 -->
+            <button @click="editPost(post.post_id)" class="edit-button">编辑</button> <!-- 添加编辑按钮 -->
+            <button @click="readMore(post.post_id)">阅读更多</button>
+          </span>
         </div>
-
       </article>
     </section>
+
+    <div class="pagination-container">
+      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="page"
+        :page-sizes="[5, 10, 20, 50]" :page-size="limit" layout="total, sizes, prev, pager, next, jumper"
+        :total="total_posts">
+      </el-pagination>
+    </div>
+
   </div>
 </template>
 
@@ -30,6 +41,9 @@ export default {
     return {
       posts: [],
       loading: true,
+      page: 1, // 当前页码
+      limit: 10, // 每页显示的条目数
+      total_posts: 0, // 总页数，需要后端返回这个数据
     };
   },
   methods: {
@@ -42,25 +56,45 @@ export default {
     },
     createPost() {
       // 跳转到文章发布页面
-      this.$router.push({ path: '/edit/post' });
+      this.$router.push({ path: '/publish/post' });
     },
     readMore(postId) {
       // 跳转到文章详情页面
       this.$router.push({ path: `/post/${postId}` });
     },
     fetchPosts() {
-      axios.post(`/py_api/get/my-post?user_id=${this.$store.state.user_id}`)
+      axios.get(`/py_api/get/my-post?user_id=${this.$store.state.user_id}&page=${this.page}&limit=${this.limit}`)
         .then(response => {
-          console.log("get my post resp: ", response)
+          console.log("get my post resp: ", response);
           this.posts = response.data.posts;
-          console.log("this posts:", this.posts)
-          this.loading = false
+          this.total_posts = response.data.total_posts; // 假设后端返回总页数
+          this.loading = false;
         })
         .catch(error => {
-          console.error('Error fetching user home info:', error);
+          console.error('Error fetching user post:', error);
           this.loading = false
         });
-    }
+    },
+    editPost(postId) {
+      this.$router.push({ path: `/edit/post/${postId}` });
+    },
+    deletePost(postId) {
+      axios.post(`/py_api/delete/post?post_id=${postId}`)
+        .then(response => {
+          this.posts = this.posts.filter(post => post.post_id !== postId);
+          this.total_posts--;
+        }).catch(error => {
+          console.error('Error delete post:', error);
+        })
+    },
+    handleSizeChange(newSize) {
+      this.limit = newSize;
+      this.fetchPosts();
+    },
+    handleCurrentChange(newPage) {
+      this.page = newPage;
+      this.fetchPosts();
+    },
   },
   mounted() {
     this.fetchPosts();
@@ -103,7 +137,8 @@ export default {
 }
 
 button {
-  background-color: #f76262;
+  background-color: red;
+  /* 绿色背景 */
   border: none;
   padding: 5px 15px;
   color: white;
@@ -112,5 +147,25 @@ button {
 
 button:hover {
   opacity: 0.8;
+}
+
+.edit-button {
+  background-color: green;
+  /* 绿色背景 */
+  margin-left: 10px;
+  /* 在按钮之间添加一些间隔 */
+  margin-right: 10px;
+}
+
+.delete-button {
+  background-color: #f76262;
+  margin-left: 10px;
+  /* 在按钮之间添加一些间隔 */
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
 }
 </style>

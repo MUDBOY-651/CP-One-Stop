@@ -22,8 +22,8 @@ const store = createStore({
     },
   },
   actions: {
-    login({ commit }, {username, user_id}) {
-      commit('login', {username, user_id});
+    login({ commit }, { username, user_id }) {
+      commit('login', { username, user_id });
     },
     logout({ commit }) {
       commit('logout');

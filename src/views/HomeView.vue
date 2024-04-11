@@ -21,7 +21,7 @@
         <p>
           3. CP One-Stop 也能集成对程序设计竞赛常用的在线比赛平台的数据统计，用户可以在平台上同时查看 Codeforces、Atcoder、洛谷等相关的数据如
           rating、题目通过数等，方便观察用户自己的学习情况。
-          <router-link to="/user" class="navbar-link">点击进入个人主页查看！</router-link>
+          <router-link :to="'/user/' + this.$store.state.user_id" class="navbar-link">点击进入个人主页查看！</router-link>
         </p>
       </div>
       <!-- 其余首页内容 -->
@@ -40,12 +40,12 @@
           <div class="post-author">
             <span style="font-size: 16px; color: grey">作者：</span>
             <span style="display:flex; align-items: center;">
-              <el-avatar :src=getUserAvatarUrl() shape="circle" :size="35"></el-avatar>
+              <el-avatar :src=getAuthorAvatarUrl(post.author_avatar) shape="circle" :size="35"></el-avatar>
               <span style="margin-left: 8px;">{{ post.author }}</span>
             </span>
           </div>
 
-          <p style="margin-top: 5px; margin-bottom: 5px">{{ post.excerpt }}</p>
+          <p style="margin-top: 5px; margin-bottom: 5px">{{ post.excerpt || 无摘要 }}</p>
           <div class="post-meta">
             <span style="color:grey">发布于 {{ formatTimestamp(post.created_at) }}</span>
             <button @click="readMore(post.post_id)">阅读更多</button>
@@ -83,7 +83,7 @@
 
       <div class="roundbox sidebox">
         <div class="titled">
-          >>Roshin
+          >>{{ user.username }}
         </div>
         <div class="personal-content">
           <div>
@@ -112,16 +112,16 @@
         <div class="titled">
           >>查找用户
         </div>
-        <form class="handleForm">
+        <form @click.prevent="handleSubmit" class="handleForm">
           <div style="padding:1em; text-align:right;">
             <label style="padding-right:1em;">
               用户名:
-              <input style="width:12em;" type="text" class="handleBox" autocomplete="off">
+              <input v-model="find_user" style="width:12em;" type="text" class="handleBox" autocomplete="off">
             </label>
 
           </div>
           <div style="padding: 0em 1em 1em 1em; text-align:right">
-
+            <button style="height:1.65em;padding:0 0.75em;" @click="findUser()"> 查找</button>
           </div>
 
         </form>
@@ -178,13 +178,17 @@ export default {
           contest_name: '',
           contest_url: '',
         },
-      }
+      },
+      find_user: '',
     };
   },
   methods: {
     getUserAvatarUrl() {
       // 如果 user.avatar 不为空，则返回 user.avatar；否则返回默认图片路径
-      return this.user.avatar || require('../assets/default_avatar.jpg');
+      return this.user.avatar || require('../assets/default_avatar.jpg')
+    },
+    getAuthorAvatarUrl(avatar) {
+      return avatar || require('../assets/default_avatar.jpg');
     },
     formatTimestamp(timestamp) {
       let now = new Date(timestamp * 1000);
@@ -195,7 +199,7 @@ export default {
     },
     getUserHomeInfo() {
       // 向后端发送请求
-      axios.post(`/py_api/get/user-home-info?user_id=${this.user.user_id}`)
+      axios.get(`/py_api/get/user-home-info?user_id=${this.user.user_id}`)
         .then(response => {
           console.log("get user home info: ", response)
           this.user.avatar = response.data.user.avatar;
@@ -211,7 +215,7 @@ export default {
     },
     getLatestPost(post_count) {
       // 向后端发送请求
-      axios.post(`/py_api/get/latest-post?post_count=${post_count}`)
+      axios.get(`/py_api/get/latest-post?post_count=${post_count}`)
         .then(response => {
           console.log("get latest post data: ", response.data.posts)
           this.posts = response.data.posts;
@@ -222,12 +226,23 @@ export default {
     },
     createPost() {
       // 跳转到文章发布页面
-      this.$router.push({ path: '/edit/post' });
+      this.$router.push({ path: '/publish/post' });
     },
     readMore(post_id) {
       // 跳转到文章详情页面
       this.$router.push({ path: `/post/${post_id}` });
     },
+    findUser() {
+      axios.get(`/py_api/find-user?username=${this.find_user}`)
+        .then(response => {
+          console.log("find user_id: ", response.data.user_id)
+          const userId = response.data.user_id;
+          this.$router.push({ path: `/user/${userId}` });
+        })
+        .catch(error => {
+          console.error('Error findUser():', error);
+        });
+    }
   },
   mounted() {
     this.getUserHomeInfo();

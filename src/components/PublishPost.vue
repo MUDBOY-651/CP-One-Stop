@@ -36,7 +36,6 @@
 <script>
 import { ref } from 'vue';
 import { ElContainer, ElMain, ElForm, ElFormItem, ElInput, ElButton } from 'element-plus';
-import { useRoute } from 'vue-router';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import axios from 'axios';
@@ -46,55 +45,43 @@ export default {
     ElContainer, ElMain, ElForm, ElFormItem, ElInput, ElButton,
     ref,
   },
-  data() {
-    return {
-      form: {
-        title: '',
-        excerpt: '',
-        content: '',
-      },
-      post_id: '',
-    }
-  },
-  methods: {
-    initForm() {
-      axios.post(`/py_api/get/post-detail?post_id=${this.post_id}`)
-        .then(response => {
-          console.log("get post detail resp:", response)
-          this.form.title = response.data.title;
-          this.form.excerpt = response.data.excerpt;
-          this.form.content = response.data.content;
-        })
-        .catch(error => {
-          console.error('Error get post detail:', error);
-        });
-    },
-    submitForm() {
-      console.log('Form Data:', this.form.value);
-      // 在这里发送表单数据到服务器...
-      let req = {
-        "post_id": this.post_id,
-        "title": this.form.title,
-        "excerpt": this.form.excerpt,
-        "content": this.form.content,
-      }
+  setup() {
+    const form = ref({
+      title: '',
+      excerpt: '',
+      content: '',
+    });
+    const router = useRouter();
+    const store = useStore();
 
-      axios.post('/py_api/update/post', req)
+
+    const submitForm = (form) => {
+      console.log('Form Data:', form.value);
+      // 在这里发送表单数据到服务器...
+      // 成功后导航回主页或其他页面
+      // 拿到 post_id 后跳转到对应的 post/post_id
+      let req = {
+        "user_id": store.state.user_id,
+        "title": form.title,
+        "excerpt": form.excerpt,
+        "content": form.content,
+      }
+      console.log(req)
+
+      axios.post('/py_api/upload/post', req)
         .then(response => {
-          console.log(`edit post ${this.post_id} success`)
-          this.$router.push({path: `/post/${this.post_id}`})
+          console.log("upload post resp:", response)
+          router.push({ path: `/post/${response.data.post_id}` });
         })
         .catch(error => {
-          console.error('Error editing post:', error);
+          console.error('Error uploading post:', error);
         });
-    },
-    returnMyPost() {
-      this.$router.push({ path: '/mypost' })
-    },
-  },
-  created() {
-    this.post_id = this.$route.params.postId
-    this.initForm();
+
+    };
+    const returnMyPost = () => {
+      router.push({ path: '/mypost' })
+    }
+    return { form, returnMyPost, submitForm };
   },
 }
 </script>

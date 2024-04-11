@@ -1,43 +1,55 @@
 <template>
   <div class="chatbox">
     <div class="messages" ref="messagesContainer">
-      <!-- 使用v-for循环遍历messages数组 -->
       <div v-for="(message, index) in messages" :key="index"
         :class="['message', { 'user-message': message.user, 'ai-message': !message.user }]">
-        <!-- 对于用户消息，直接显示文本 -->
         <template v-if="message.user">
           <div class="message-content">{{ message.text }}</div>
         </template>
-        <!-- 对于AI消息，应用Markdown渲染 -->
         <template v-else>
           <div class="message-content" v-html="renderMarkdown(message.text)"></div>
         </template>
       </div>
     </div>
-    <form @submit.prevent="sendMessage" class="form-container">
-      <textarea v-model="userInput" ref="messageInput" placeholder="Type your message here..." class="message-input"
-        @input="autoResize" rows="1"></textarea>
-      <button type="submit" class="send-button">Send</button>
-    </form>
+    <ElForm @submit.native.prevent="sendMessage" class="form-container">
+      <ElInput
+        v-model="userInput"
+        type="textarea"
+        class="message-input"
+        placeholder="请在这里输入您的问题..."
+        :autosize="{ minRows: 1, maxRows: 15 }">
+      </ElInput>
+      <ElButton type="primary" native-type="submit" class="send-button">发送</ElButton>
+    </ElForm>
   </div>
 </template>
 
 
+
 <script>
 import axios from 'axios'; // 引入axios
-import { Marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-dark.css';
+import MarkdownIt from 'markdown-it';
+import mk from 'markdown-it-katex';
+import 'katex/dist/katex.min.css';
 
-const marked = new Marked (
-  markedHighlight({
-    langPrefix: 'hljs language-',
-    highlight(code, lang, info) {
-      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-      return hljs.highlight(code, { language }).value;
+const md = new MarkdownIt({
+  highlight: function (str, lang) {
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return '<pre><code class="hljs">' +
+          hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+          '</code></pre>';
+      } catch (__) { }
     }
-  })
-);
+
+    return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+  }
+});
+
+md.use(mk)
+
 
 
 export default {
@@ -55,7 +67,8 @@ export default {
 
       // 将用户输入添加到messages
       this.messages.push({ text: this.userInput, user: true });
-      this.gpt_messages.push({ role: "user", content: this.userInput })
+      // this.gpt_messages.push({ role: "user", content: this.userInput })
+      this.gpt_messages.push(this.userInput)
 
       this.userInput = ''; // 清空输入框
       // 准备发送到后端的数据
@@ -71,35 +84,31 @@ export default {
         console.log(response.data)
 
         if (response.data) {
-          this.gpt_messages.push({ role: "assistant", content: response.data })
+          // this.gpt_messages.push({ role: "assistant", content: response.data })
+          this.gpt_messages.push(response.data)
           this.messages.push({ text: response.data, user: false })
         }
-        // 假设后端返回一个新的messages数组，包括用户的输入和AI的回复
-        // if (response.data && response.data.messages) {
-        //   this.gpt_messages.push({role: "assistant", content: response.data.messages[response.data.messages.length - 1].content})
-        //   this.messages.push({ text: response.data.messages[response.data.messages.length - 1].content, user: false })
-        // }
       } catch (error) {
         console.error('Error sending message:', error);
-        // 处理错误情况（例如：显示错误消息）
       }
 
-      this.$nextTick(() => {
-        this.autoResize();
-        const { messagesContainer } = this.$refs;
-        messagesContainer.scrollTop = messagesContainer.scrollHeight; // 滚动到底部
-      });
-    },
-    autoResize() {
-      // 自动调整输入框大小的逻辑保持不变
-      const textarea = this.$refs.messageInput;
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
     },
     renderMarkdown(text) {
-      return marked.parse(text);
+      return md.render(text)
     },
+    initMessages() {
+      // 示例消息填充逻辑
+      setTimeout(() => {
+        this.messages.push({
+          text: '您好！我是你的专属程序设计竞赛小助手，请问有什么程序设计竞赛相关的问题需要我解答的吗？',
+          user: false
+        });
+      }, 500); // 设置500毫秒的延时
+    }
   },
+  mounted() {
+    this.initMessages();
+  }
 };
 </script>
 
@@ -134,7 +143,7 @@ export default {
 }
 
 .message-content {
-  padding: 10px;
+  padding: 18px;
   border-radius: 10px;
   color: white;
   max-width: 80%;
@@ -169,10 +178,8 @@ export default {
   border-radius: 20px;
   /* 阻止用户手动调整大小 */
   resize: none;
-  padding: 0px 10px 0px 10px;
   margin-right: 55px;
   /* 预留出足够的空间给发送按钮，值根据按钮大小调整 */
-  border: 1px solid #ccc;
   outline: none;
   /* 移除焦点时的轮廓 */
   min-height: 30px;

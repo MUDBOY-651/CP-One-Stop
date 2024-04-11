@@ -58,16 +58,40 @@
 
       <div class="user-info user-main-info">
         <div v-if="canEditProfile">
-          <img :src="getUserAvatarUrl()" alt="User avatar" class="avatar" @click="openAvatarFilePicker">
+          <img :src="getUserAvatarUrl(user.avatar)" alt="User avatar" class="avatar" @click="openAvatarFilePicker">
           <h1>{{ user.username }}</h1>
           <p>{{ user.bio }}</p>
         </div>
         <div v-else>
-          <img :src="getUserAvatarUrl()" alt="User avatar" class="avatar">
+          <img :src="getUserAvatarUrl(user.avatar)" alt="User avatar" class="avatar">
           <h1>{{ user.username }}</h1>
           <p>{{ user.bio }}</p>
         </div>
         <input type="file" ref="avatarFilePicker" style="display: none" @change="handleAvatarFileChange">
+
+        <div class="recent-movement">
+          <header class="header">
+            <!-- 标题和搜索等可以放这里 -->
+            <h2>最近动态</h2>
+            <!-- <button @click="createPost">我要发文</button> -->
+          </header>
+
+          <section class="content">
+            <div v-if="loading">加载中...</div>
+            <article v-else v-for="post in posts" :key="post.post_id" class="post">
+              <h2 style="margin-bottom: 5px; margin-top: 5px;">{{ post.title }}</h2>
+
+              <p style="margin-top: 5px; margin-bottom: 5px">{{ post.excerpt }}</p>
+
+              <div class="post-meta">
+                <span style="color:grey">发布于 {{ formatTimestamp(post.created_at) }}</span>
+                <button @click="readMore(post.post_id)">阅读更多</button>
+              </div>
+
+            </article>
+          </section>
+
+        </div>
       </div>
 
 
@@ -160,9 +184,21 @@ export default {
       target_user: {
         user_id: ''
       },
+      posts: [],
     };
   },
+  watch: {
+    '$route': 'initUserData'
+
+  },
   methods: {
+    formatTimestamp(timestamp) {
+      let now = new Date(timestamp * 1000);
+      let y = now.getFullYear();
+      let m = now.getMonth() + 1;
+      let d = now.getDate();
+      return y + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d) + " " + now.toTimeString().substr(0, 8);
+    },
     initFieldData() {
       // 将每个字段添加到各个字段对象中，并初始化为空字符串
       this.fields.forEach(field => {
@@ -187,9 +223,8 @@ export default {
           console.error('Error fetching user info:', error);
         });
     },
-    getUserAvatarUrl() {
-      // 如果 user.avatar 不为空，则返回 user.avatar；否则返回默认图片路径
-      return this.user.avatar || require('../assets/default_avatar.jpg');
+    getUserAvatarUrl(avatar) {
+      return avatar || require('../assets/default_avatar.jpg');
     },
     getUserBackgroundImageUrl() {
       return this.user.background_image_url || require('../assets/default_bg.jpg');
@@ -390,7 +425,27 @@ export default {
           console.error('Error uploading background image:', error);
         });
     },
-
+    getRecentPosts() {
+      axios.get(`/py_api/get/user-latest-post?user_id=${this.target_user.user_id}`)
+        .then(response => {
+          console.log("get my post resp: ", response)
+          this.posts = response.data.posts;
+          console.log("this posts:", this.posts)
+          this.loading = false
+        })
+        .catch(error => {
+          console.error('Error fetching user latest post:', error);
+          this.loading = false
+        });
+    },
+    readMore(postId) {
+      this.$router.push({ path: `/post/${postId}` });
+    },
+    initUserData() {
+      this.initFieldData();
+      this.getUserInfo();
+      this.getRecentPosts();
+    },
   },
   computed: {
     canEditProfile() {
@@ -403,8 +458,7 @@ export default {
     this.target_user.user_id = this.$route.params.userId;
   },
   mounted() {
-    this.initFieldData();
-    this.getUserInfo();
+    this.initUserData();
   },
 };
 </script>
@@ -574,5 +628,30 @@ export default {
 .edit-message {
   color: red;
   opacity: 1;
+}
+
+.post {
+  border-bottom: 1px solid #ccc;
+  padding: 10px 10px;
+}
+
+.post:last-child {
+  border-bottom: none;
+}
+
+.post-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8em;
+}
+
+.recent-movement {
+  padding: 10px;
+}
+
+.recent-movement .post {
+  text-align: left;
+
 }
 </style>

@@ -90,7 +90,7 @@ onMounted(() => {
   const postId = route.params.postId; // 获取路径参数中的 postId
   console.log(postId)
 
-  axios.get(`/py_api/get/post-detail?post_id=${postId}`)
+  axios.post(`/py_api/get/post-detail?post_id=${postId}`)
     .then(response => {
       console.log("get post detail resp:", response)
       post.value = response.data;
