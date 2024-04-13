@@ -42,27 +42,18 @@ export default {
         email: this.email,
       };
 
-      try {
-        const response = await axios.post('/api/register', userData);
-        if (response && response.data && response.data.success) {
-
-          console.log('Register successful:', response.data.content);
+      await axios.post('py_api/register', userData)
+        .then(response => {
           // 处理注册成功的逻辑，例如保存 token、更新用户状态等
-          this.$store.dispatch('login', { username: this.username, user_id: response.data.content.user_id });
+          this.$store.dispatch('login', { username: this.username, user_id: response.data.user_id });
           this.$router.push('/');
-        } else {
-          console.error('Register failed:', response.data.message);
-          this.errorMessage = response.data.message || 'Registration failed for an unknown reason.';
-        }
-      } catch (error) {
-        console.log('Register error:', error.response || error.message);
-        if (error.response && error.response.data) {
-          this.errorMessage = error.response.data.message;
-        } else {
-          this.errorMessage = 'Network error or server is unreachable.';
-        }
-      }
 
+        })
+        .catch(error => {
+          console.log(error)
+          this.errorMessage = 'Register Failed: '
+          this.errorMessage += error.response.data.detail || 'Network error or server is unreachable.';
+        })
     },
   },
 };

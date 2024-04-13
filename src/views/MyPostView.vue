@@ -1,35 +1,43 @@
 <template>
-  <div class="blog-home">
-    <header class="header">
-      <!-- 标题和搜索等可以放这里 -->
-      <h1>文章主页</h1>
-      <button @click="createPost" style="background-color: #409eff;">发布文章</button>
-    </header>
-    <section class="content">
-      <div v-if="loading">加载中...</div>
-      <article v-else v-for="post in posts" :key="post.post_id" class="post">
-        <h2 style="margin-bottom: 5px; margin-top: 5px;">{{ post.title }}</h2>
+  <div class="app-container">
+    <el-menu default-active="1" class="el-menu-vertical-demo" @select="handleSelect"
+      style="width: 200px; height: 100%; float: left;">
+      <el-menu-item index="1">平台近期动态</el-menu-item>
+      <el-menu-item index="2">个人文章列表</el-menu-item>
+      <el-menu-item index="3">收藏文章列表</el-menu-item>
+    </el-menu>
+    <div class="blog-home">
+      <header class="header">
+        <!-- 标题和搜索等可以放这里 -->
+        <h1>文章主页</h1>
+        <button @click="createPost" style="background-color: #409eff;">发布文章</button>
+      </header>
+      <section class="content">
+        <div v-if="loading">加载中...</div>
+        <article v-else v-for="post in posts" :key="post.post_id" class="post">
+          <h2 style="margin-bottom: 5px; margin-top: 5px;">{{ post.title }}</h2>
 
-        <p style="margin-top: 5px; margin-bottom: 5px">{{ post.excerpt }}</p>
+          <p style="margin-top: 5px; margin-bottom: 5px">{{ post.excerpt }}</p>
 
-        <div class="post-meta">
-          <span style="color:grey">发布于 {{ formatTimestamp(post.created_at) }}</span>
-          <span>
-            <button @click="deletePost(post.post_id)" class="delete-button">删除</button> <!-- 添加编辑按钮 -->
-            <button @click="editPost(post.post_id)" class="edit-button">编辑</button> <!-- 添加编辑按钮 -->
-            <button @click="readMore(post.post_id)">阅读更多</button>
-          </span>
-        </div>
-      </article>
-    </section>
+          <div class="post-meta">
+            <span style="color:grey">发布于 {{ formatTimestamp(post.created_at) }}</span>
+            <span>
+              <button @click="deletePost(post.post_id)" class="delete-button">删除</button> <!-- 添加编辑按钮 -->
+              <button @click="editPost(post.post_id)" class="edit-button">编辑</button> <!-- 添加编辑按钮 -->
+              <button @click="readMore(post.post_id)">阅读更多</button>
+            </span>
+          </div>
+        </article>
+      </section>
 
-    <div class="pagination-container">
-      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="page"
-        :page-sizes="[5, 10, 20, 50]" :page-size="limit" layout="total, sizes, prev, pager, next, jumper"
-        :total="total_posts">
-      </el-pagination>
+      <div class="pagination-container">
+        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="page"
+          :page-sizes="[5, 10, 20, 50]" :page-size="limit" layout="total, sizes, prev, pager, next, jumper"
+          :total="total_posts">
+        </el-pagination>
+      </div>
+
     </div>
-
   </div>
 </template>
 
@@ -108,6 +116,7 @@ export default {
   margin: 0 auto;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* background-color: #efefef; */
 }
 
 .header {

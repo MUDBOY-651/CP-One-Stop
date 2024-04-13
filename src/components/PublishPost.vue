@@ -19,10 +19,14 @@
           </el-form-item>
           <el-form-item style="text-align: center;">
             <el-button type="primary" @click="returnMyPost"
-              style="height: 2.5em; width:15%; font-size:16px; border-radius: 10px; background-color:blanchedalmond; margin-right: 1em;">
+              style="height: 2.5em; width:15%; font-size:16px; border-radius: 10px; background-color:blanchedalmond;">
               <span style="color: black">返回个人专栏</span>
             </el-button>
-            <el-button type="primary" @click="submitForm(form)"
+            <el-button type="primary" @click="submitForm(form, false)"
+              style="height: 2.5em; width:15%; font-size:16px; border-radius: 10px; background-color:#65DA78; margin-left:1em">
+              <span style="color:white">保存文章</span>
+            </el-button>
+            <el-button type="primary" @click="submitForm(form, true)"
               style="height: 2.5em; width:15%; font-size:16px; border-radius: 10px; background-color:#f76262; margin-left:1em">
               <span style="color:white">发布文章</span>
             </el-button>
@@ -55,7 +59,7 @@ export default {
     const store = useStore();
 
 
-    const submitForm = (form) => {
+    const submitForm = (form, ask_review) => {
       console.log('Form Data:', form.value);
       // 在这里发送表单数据到服务器...
       // 成功后导航回主页或其他页面
@@ -65,6 +69,7 @@ export default {
         "title": form.title,
         "excerpt": form.excerpt,
         "content": form.content,
+        "ask_review": ask_review,
       }
       console.log(req)
 
@@ -76,7 +81,6 @@ export default {
         .catch(error => {
           console.error('Error uploading post:', error);
         });
-
     };
     const returnMyPost = () => {
       router.push({ path: '/mypost' })

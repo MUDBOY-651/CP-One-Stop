@@ -240,6 +240,10 @@ export default {
           this.$router.push({ path: `/user/${userId}` });
         })
         .catch(error => {
+          this.$message({
+            type: 'warning',
+            message: error.response.data.detail || "未知原因，操作失败",
+          });
           console.error('Error findUser():', error);
         });
     }
@@ -249,6 +253,7 @@ export default {
     this.getLatestPost(5);
   },
   created() {
+    console.log("user_type:", this.$store.state.user_type)
     this.user.user_id = this.$store.state.user_id;
   }
 };

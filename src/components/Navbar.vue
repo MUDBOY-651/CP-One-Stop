@@ -3,9 +3,10 @@
     <h1 class="navbar-brand">CP One-Stop</h1>
     <div class="navbar-links">
       <!-- 导航链接 -->
-      <router-link to="/" class="navbar-link">主页</router-link>
+      <router-link v-if="$store.state.user_type == 1" to="/review/post" class="navbar-link">审核后台</router-link>
+      <router-link to="/" class="navbar-link">首页</router-link>
       <router-link v-if="isLoggedIn" to="/chat" class="navbar-link">专属助手</router-link>
-      <router-link v-if="isLoggedIn" to="/mypost" class="navbar-link">个人专栏</router-link>
+      <router-link v-if="isLoggedIn" to="/mypost" class="navbar-link">社区服务</router-link>
       <router-link v-if="isLoggedIn" :to="'/user/' + $store.state.user_id" class="navbar-link">个人主页</router-link>
       <router-link v-if="!isLoggedIn" to="/register" class="navbar-link">注册</router-link>
       <button v-if="isLoggedIn" @click="logout" class="navbar-button">退出登录</button>

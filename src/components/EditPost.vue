@@ -19,10 +19,14 @@
           </el-form-item>
           <el-form-item style="text-align: center;">
             <el-button type="primary" @click="returnMyPost"
-              style="height: 2.5em; width:15%; font-size:16px; border-radius: 10px; background-color:blanchedalmond; margin-right: 1em;">
+              style="height: 2.5em; width:15%; font-size:16px; border-radius: 10px; background-color:blanchedalmond;">
               <span style="color: black">返回个人专栏</span>
             </el-button>
-            <el-button type="primary" @click="submitForm(form)"
+            <el-button type="primary" @click="submitForm(false)"
+              style="height: 2.5em; width:15%; font-size:16px; border-radius: 10px; background-color:#65DA78; margin-left:1em">
+              <span style="color:white">保存文章</span>
+            </el-button>
+            <el-button type="primary" @click="submitForm(true)"
               style="height: 2.5em; width:15%; font-size:16px; border-radius: 10px; background-color:#f76262; margin-left:1em">
               <span style="color:white">发布文章</span>
             </el-button>
@@ -58,7 +62,7 @@ export default {
   },
   methods: {
     initForm() {
-      axios.post(`/py_api/get/post-detail?post_id=${this.post_id}`)
+      axios.get(`/py_api/get/post-detail?post_id=${this.post_id}`)
         .then(response => {
           console.log("get post detail resp:", response)
           this.form.title = response.data.title;
@@ -69,7 +73,7 @@ export default {
           console.error('Error get post detail:', error);
         });
     },
-    submitForm() {
+    submitForm(ask_review) {
       console.log('Form Data:', this.form.value);
       // 在这里发送表单数据到服务器...
       let req = {
@@ -77,12 +81,12 @@ export default {
         "title": this.form.title,
         "excerpt": this.form.excerpt,
         "content": this.form.content,
+        "ask_review": ask_review,
       }
-
       axios.post('/py_api/update/post', req)
         .then(response => {
           console.log(`edit post ${this.post_id} success`)
-          this.$router.push({path: `/post/${this.post_id}`})
+          this.$router.push({ path: `/post/${this.post_id}` })
         })
         .catch(error => {
           console.error('Error editing post:', error);

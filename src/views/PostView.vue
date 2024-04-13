@@ -2,6 +2,18 @@
   <el-container>
     <el-main>
       <div class="post-content">
+        <!-- 添加收藏按钮 -->
+
+        <el-button type="primary" @click="toggleStarred">
+          <el-icon color="yellow" size="18">
+            <Star v-if="!isStarred"></Star>
+            <StarFilled v-else></StarFilled>
+          </el-icon>
+          {{ isStarred ? '取消收藏' : '收藏文章' }}
+        </el-button>
+        <span>
+
+        </span>
         <h2>{{ post.title }}</h2>
         <div class="post-author">
           <!-- <el-avatar :src="post.author_avatar"></el-avatar> -->
@@ -26,30 +38,13 @@
   </el-container>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { ElContainer, ElMain, ElDivider, ElAvatar } from 'element-plus';
+<script>
 import axios from 'axios';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-dark.css';
 import MarkdownIt from 'markdown-it';
 import mk from 'markdown-it-katex'
 import 'katex/dist/katex.min.css';
-
-
-// 使用Vue Router的useRoute来获取当前路由信息
-const route = useRoute();
-
-// 文章数据
-const post = ref({
-  title: '',
-  excerpt: '',
-  content: '',
-  created_at: '',
-  author: '',
-  author_avatar: ''
-});
 
 const md = new MarkdownIt({
   highlight: function (str, lang) {
@@ -67,38 +62,83 @@ const md = new MarkdownIt({
 
 md.use(mk);
 
-const renderMarkdown = (content) => {
-  return md.render(content)
-};
+export default {
+  data() {
+    return {
+      post: {
+        title: '',
+        excerpt: '',
+        content: '',
+        created_at: '',
+        author: '',
+        author_avatar: ''
+      },
+      post_id: this.$route.params.postId, // 获取路径参数中的 postId
+      isStarred: false,
+    }
+  },
+  methods: {
+    renderMarkdown(content) {
+      return md.render(content)
 
-const getAuthorAvatarUrl = (avatar) => {
-  return avatar || require('../assets/default_avatar.jpg');
-};
-
-const formatTimestamp = (timestamp) => {
-  let now = new Date(timestamp * 1000);
-  let y = now.getFullYear();
-  let m = now.getMonth() + 1;
-  let d = now.getDate();
-  return y + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d) + " " + now.toTimeString().substr(0, 8);
-};
+    },
+    getAuthorAvatarUrl(avatar) {
+      return avatar || require('../assets/default_avatar.jpg');
+    },
+    formatTimestamp(timestamp) {
 
 
+      let now = new Date(timestamp * 1000);
+      let y = now.getFullYear();
+      let m = now.getMonth() + 1;
+      let d = now.getDate();
+      return y + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d) + " " + now.toTimeString().substr(0, 8);
 
-// 从API获取文章详情
-onMounted(() => {
-  const postId = route.params.postId; // 获取路径参数中的 postId
-  console.log(postId)
+    },
+    toggleStarred() {
+      let req = {
+        "user_id": this.$store.state.user_id,
+        "post_id": this.post_id,
+        "try_star": !this.isStarred,
+      }
+      axios.post('/py_api/update/star', req)
+        .then(response => {
+          this.isStarred = !this.isStarred; // 切换收藏状态
+        })
+        .catch(error => {
+          console.error('Error star a post:', error);
+        });
+    },
+    fetchPostDetail() {
+      axios.get(`/py_api/get/post-detail?post_id=${this.post_id}`)
+        .then(response => {
+          console.log("get post detail resp:", response)
+          this.post = response.data;
+        })
+        .catch(error => {
+          console.error('Error get post detail:', error);
+        });
+    },
+    fetchStarred() {
+      axios.get(`/py_api/get/starred?user_id=${this.$store.state.user_id}&post_id=${this.post_id}`)
+      .then(response => {
+        this.isStarred = response.data.is_starred;
+      })
+      .catch(error => {
+          console.error('Error get starred detail:', error);
+      })
+    }
+  },
+  mounted() {
+    this.fetchPostDetail();
+    this.fetchStarred();
+  },
+}
 
-  axios.get(`/py_api/get/post-detail?post_id=${postId}`)
-    .then(response => {
-      console.log("get post detail resp:", response)
-      post.value = response.data;
-    })
-    .catch(error => {
-      console.error('Error get post detail:', error);
-    });
-});
+// 切换收藏状态的函数
+
+
+
 </script>
 
 <style scoped>

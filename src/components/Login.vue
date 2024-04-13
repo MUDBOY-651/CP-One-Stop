@@ -35,30 +35,24 @@ export default {
         password: this.password,
       };
 
-      try {
-        const response = await axios.post('/api/login', loginData);
-        if (response && response.data && response.data.success) {
-          console.log('Login successful:', response.data.content);
+      await axios.post('py_api/login', loginData)
+        .then(response => {
           // 处理登录成功的逻辑，例如保存 token、更新用户状态等
-          this.$store.dispatch('login', { username: this.username, user_id: response.data.content.user_id });
+          this.$store.dispatch('login', { username: this.username, user_id: response.data.user_id, user_type: response.data.user_type });
           this.$router.push('/');
-
           // 触发后端爬虫更新用户数据 
-          // axios.post(`/py_api/crawler/platform-stats?user_id=${response.data.content.user_id}`)
+          // axios.post(`/py_api/crawler/platform-stats?user_id=${response.data.user_id}`)
           //   .then(response => {
           //     console.log("crawler success")
           //   })
           //   .catch(error => {
           //     console.error('crawler error:', error);
           //   });
-        } else {
-          console.error('Login failed:', response.data.message);
-          this.errorMessage = response.data.message || 'Login failed. Please check your username and password.';
-        }
-      } catch (error) {
-        console.error('Login error:', error.response || error.message);
-        this.errorMessage = error.response.data.message || 'Network error. Please try again later.';
-      }
+        })
+        .catch(error => {
+          this.errorMessage = 'Login Failed: '
+          this.errorMessage += error.response.data.detail || 'Network error. Please try again later.';
+        })
     },
     navigateToRegister() {
       this.$router.push('/register'); // 导航到注册页面

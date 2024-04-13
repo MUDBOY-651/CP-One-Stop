@@ -21,7 +21,7 @@ const routes = [
   { path: '/post/:postId', component: PostView },
   { path: '/publish/post', component: PublishPost },
   { path: '/edit/post/:postId', component: EditPost },
-  { path: '/review/post/:postId', component: ReviewPost},
+  { path: '/review/post', component: ReviewPost},
   // 可以添加更多的路由规则
 ];
 

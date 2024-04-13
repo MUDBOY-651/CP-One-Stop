@@ -159,7 +159,7 @@ export default {
 
 .ai-message .message-content {
   margin-right: auto;
-  background-color: #666;
+  background-color: #4E5C4C;
 }
 
 .form-container {
